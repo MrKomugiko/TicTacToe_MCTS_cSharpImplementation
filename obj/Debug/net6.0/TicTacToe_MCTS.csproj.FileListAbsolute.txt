@@ -1,0 +1,16 @@
+D:\Code\TicTacToe_MCTS\bin\Debug\net6.0\TicTacToe_MCTS.exe
+D:\Code\TicTacToe_MCTS\bin\Debug\net6.0\TicTacToe_MCTS.deps.json
+D:\Code\TicTacToe_MCTS\bin\Debug\net6.0\TicTacToe_MCTS.runtimeconfig.json
+D:\Code\TicTacToe_MCTS\bin\Debug\net6.0\TicTacToe_MCTS.dll
+D:\Code\TicTacToe_MCTS\bin\Debug\net6.0\ref\TicTacToe_MCTS.dll
+D:\Code\TicTacToe_MCTS\bin\Debug\net6.0\TicTacToe_MCTS.pdb
+D:\Code\TicTacToe_MCTS\obj\Debug\net6.0\TicTacToe_MCTS.GlobalUsings.g.cs
+D:\Code\TicTacToe_MCTS\obj\Debug\net6.0\TicTacToe_MCTS.csproj.AssemblyReference.cache
+D:\Code\TicTacToe_MCTS\obj\Debug\net6.0\TicTacToe_MCTS.GeneratedMSBuildEditorConfig.editorconfig
+D:\Code\TicTacToe_MCTS\obj\Debug\net6.0\TicTacToe_MCTS.AssemblyInfoInputs.cache
+D:\Code\TicTacToe_MCTS\obj\Debug\net6.0\TicTacToe_MCTS.AssemblyInfo.cs
+D:\Code\TicTacToe_MCTS\obj\Debug\net6.0\TicTacToe_MCTS.csproj.CoreCompileInputs.cache
+D:\Code\TicTacToe_MCTS\obj\Debug\net6.0\TicTacToe_MCTS.dll
+D:\Code\TicTacToe_MCTS\obj\Debug\net6.0\ref\TicTacToe_MCTS.dll
+D:\Code\TicTacToe_MCTS\obj\Debug\net6.0\TicTacToe_MCTS.pdb
+D:\Code\TicTacToe_MCTS\obj\Debug\net6.0\TicTacToe_MCTS.genruntimeconfig.cache
