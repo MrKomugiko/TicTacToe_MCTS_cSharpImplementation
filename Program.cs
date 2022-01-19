@@ -1,110 +1,92 @@
 ﻿class Program
 {
-    static string[] arr = new string[9];
-    static int HumanId = 1; // 1szy = "O"
-    static int BotId = 2; // 2gi = "X"
-    static void Main(string[] args)
+    static int Player_1 = 1; // 1szy = "O"
+    static int Player_2 = 2; // 2gi = "X"
+    
+    static async Task Main(string[] args)
     {
-        for (int i = 0; i < 9; i++) arr[i] = "";
 
-        // Console.WriteLine("Start - empty board");
-        // var _board = new BoardInfo(null, HumanId==1?HumanId:BotId);
-        // _board.DrawBoard();
+            MCTS _mcts = new MCTS();
+            Console.WriteLine("Start");
+            var _board = new BoardInfo(null, Player_1==1?Player_1:Player_2);
+            _board.DrawBoard();
+           
+            while (true)
+            {
+                if(Player_1 == 1)
+                {
+                    //// ruch gracza
+                    // Console.WriteLine("player 1 ['O']");
+                    // int playerMove = Int32.Parse(Console.ReadLine());
+                    // _board.SetMove(_board, playerMove, HumanId);
+                    // _board.DrawBoard();
+                    // if(GameOver(_board)) break;
+                    Console.WriteLine("bot 1 ['O'] = BOT");
+                    _mcts.AIBot_Id = Player_1;
+                    _mcts.EnemyID = Player_2;
+                    Node root = new Node(null, _board, Player_1); 
+                    //Console.WriteLine("Właczenie mcts");
 
-        // while (true)
-        // {
-        //     if(HumanId == 1)
-        //     {
-        //         Console.WriteLine("player 1 ['O']");
-        //         int playerMove = Int32.Parse(Console.ReadLine());
-        //         _board.SetMove(_board, playerMove, HumanId);
-        //         _board.DrawBoard();
-        //         if (_board.isGameEnded() == true)
-        //         {
-        //             Console.WriteLine($"Winner: {_board.currentPlayer}['{_board.playerMark}'] ");
-        //             break;
-        //         }
-        //         if (_board.isDraw())
-        //         {
-        //             Console.WriteLine("DRAW.");
-        //             break;
-        //         }
+                    var searching = await _mcts.SearchAsync(root.board, _timeout:200);
+                    
+                    //Console.WriteLine("trwa szukanie odpowiedniego ruchu");
+                    int botMove = (int)searching.board.recentMovement;
+                  //  wykonanie ruchu przez bota
+                    _board.SetMove(_board, botMove, Player_1);
+                    _board.DrawBoard();
+                    //Console.ReadKey();
+                    if(GameOver(_board)) break;
+                
 
-        //         Console.WriteLine("bot 2 ['X'] = BOT \n");
-        //         int botMove = GetNewMove(_board, BotId);
-        //         _board.SetMove(_board, botMove, BotId);
-        //         _board.DrawBoard();
-        //         if (_board.isGameEnded() == true)
-        //         {
-        //             Console.WriteLine($"Winner: {_board.currentPlayer}['{_board.playerMark}'] ");
-        //             break;
-        //         }
-        //         if (_board.isDraw())
-        //         {
-        //             Console.WriteLine("DRAW.");
-        //             break;
-        //         }
-        //     }
-        //     else
-        //     {
-        //          Console.WriteLine("bot 1 ['O']");
-        //         int playerMove = Int32.Parse(Console.ReadLine());
-        //         _board.SetMove(_board, playerMove, BotId);
-        //         _board.DrawBoard();
-        //         if (_board.isGameEnded() == true)
-        //         {
-        //             Console.WriteLine($"Winner: {_board.currentPlayer}['{_board.playerMark}'] ");
-        //             break;
-        //         }
-        //         if (_board.isDraw())
-        //         {
-        //             Console.WriteLine("DRAW.");
-        //             break;
-        //         }
+                    Console.WriteLine("bot 2 ['X'] = BOT");
+                    // create working copy of current board
+                    _mcts.AIBot_Id = Player_2;
+                    _mcts.EnemyID = Player_1;
+                    searching = await _mcts.SearchAsync(_board, _timeout:200);
+                    botMove = (int)searching.board.recentMovement;
+                    // wykonanie ruchu przez bota
+                    _board.SetMove(_board, botMove, Player_2);
+                    _board.DrawBoard();
+                //Console.ReadKey();
+                    if(GameOver(_board)) break;
+                    
+                }
+                else
+                {
+                    // Console.WriteLine("bot 1 ['O'] = BOT");
+                    // _mcts.AIBot_Id = Player_1;
+                    // _mcts.EnemyID = Player_2;
+                    // Node root = new Node(null, _board, Player_1);
+                    // var newBotMove = await _mcts.Search(root.board);
+                    // int botMove =(int)newBotMove.board.recentMovement;
+                    // _board.SetMove(_board, botMove, Player_2);
+                    // _board.DrawBoard();
+                    // if(GameOver(_board)) break;
 
-        //         Console.WriteLine("player 2 ['X'] = BOT \n");
-        //         int botMove = GetNewMove(_board, HumanId);
-        //         _board.SetMove(_board, botMove, HumanId);
-        //         _board.DrawBoard();
-        //         if (_board.isGameEnded() == true)
-        //         {
-        //             Console.WriteLine($"Winner: {_board.currentPlayer}['{_board.playerMark}'] ");
-        //             break;
-        //         }
-        //         if (_board.isDraw())
-        //         {
-        //             Console.WriteLine("DRAW.");
-        //             break;
-        //         }
-        //     }
-        // }
-        var rand = new Random();
-        var _board2 = new BoardInfo(null, HumanId == 1 ? HumanId : BotId);
-        _board2.SetMove(_board2, 0, HumanId);
-        _board2.SetMove(_board2, 3, BotId);
-        _board2.SetMove(_board2, 2, HumanId);
-
-        MCTS _mcts = new MCTS();
-        _mcts.BotId = BotId;
-        _mcts.HumanId = HumanId;
-
-        Node root = new Node(null, _board2, HumanId);
-        root.board.DrawBoard();
-
-        var newBotMove = _mcts.Search(root.board, HumanId);
-        Console.WriteLine("odpowiedz bota = pozycja nr."+newBotMove.board.recentMovement);
-        
-        // _mcts.Expand(root);
-        // _mcts.Expand(root);
-        // _mcts.Expand(root);
-        // _mcts.Expand(root);
-        // Console.WriteLine(String.Join(",",root.childrens.Select(x=>x.board.recentMovement).ToList()));
-
-        // _mcts.Expand(root.childrens.First());
-        // _mcts.Expand(root.childrens.First());
-
-        Console.WriteLine("end.");
+                    // Console.WriteLine("player 2 ['X'] = Human \n");
+                    // int playerMove = Int32.Parse(Console.ReadLine());
+                    // _board.SetMove(_board, playerMove, Player_1);
+                    // _board.DrawBoard();
+                    // if(GameOver(_board)) break;
+                }
+            }
+       
         Console.ReadKey();
+    }
+
+    private static bool GameOver(BoardInfo _board)
+    {
+        if (_board.isDraw())
+        {
+            Console.WriteLine("DRAW.");
+            return true; ;
+        }
+        if (_board.isGameEnded() == true)
+        {
+            Console.WriteLine($"Winner: {_board.currentPlayer}['{_board.playerMark}'] ");
+            return true;
+        }
+        return false;
     }
 
     private static int Simulate(BoardInfo _board, int firstPlayer)

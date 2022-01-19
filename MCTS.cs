@@ -1,17 +1,33 @@
+using System.Diagnostics;
+
 public class MCTS
 {
-    public int BotId {get;set;}
-    public int HumanId { get; internal set; }
-    public int iterations = 1_000;
-
-    public Node Search(BoardInfo _initialGameData, int botId)
-    {
+    public int AIBot_Id {get;set;}
+    public int EnemyID { get; internal set; }
+    public int iterations = 1_000_000;
+    public Random rand = new Random();
+    static int simulationsCount = 0;
+    public async Task<Node> SearchAsync(BoardInfo _initialGameData, int _timeout)
+    {     
+        Console.WriteLine("Searching started...");
+       
+        // timeout settings
+        var _tokenSource = new CancellationTokenSource();
+        var token = _tokenSource.Token;
+        _tokenSource.CancelAfter(_timeout);
+       
+        simulationsCount = 0;
         // create root node
-        Node root = new Node(_parent:null, _initialGameData, botId);
+        Node root = new Node(_parent:null, _initialGameData, AIBot_Id==1?2:1);
+
 
         // search iteration
         for (int i = 0; i < iterations; i++)
         {
+            if(token.IsCancellationRequested){
+                //Console.WriteLine("Szukanie aanulowane. Zwracanie aktualnego wygenerowanego wyniku.");
+                break;
+            } 
             // select node
             Node node =  SelectNode(root); 
 
@@ -19,21 +35,18 @@ public class MCTS
             float score = Rollout(node.board);
 
             // backpropagation
-            Backpropagate(node,score); 
+            Backpropagate(node,score);
         }
-
-
-        // debug show statistics
+       
+        // DEBUG show statistics
         foreach(var child in root.childrens)
         {
             Console.WriteLine($"Value: {child.value}\tVisits: {child.visits}\tUCB1: {child.UCB1Score}");
-            child.board.DrawBoard();
+            //child.board.DrawBoard();
         }
 
-        // get best score
-
         return GetBestMove(root,0);
-    
+        
     }
     private Node GetRoot(Node child){
         if(child.parent != null){
@@ -45,73 +58,42 @@ public class MCTS
     // select best node basing on UCB1 formula ( explorationConst )
     private Node GetBestMove(Node _node, int exploration)
     {
-        var rand = new Random();
-        // define best score & best moves
         float bestScore = float.NegativeInfinity; // -oo
         List<Node> bestMoves = new();
 
-        // loop over child nodes
+        double lnOftotalVisits = Math.Log(GetRoot(_node).visits);
+        double explorationConst = exploration;
         foreach(var child in _node.childrens)
         {
-            //define current player
-            // int currentPlayer = 0;
-            // if(_node.IdMakesMove == BotId)
-            //     currentPlayer = -1;
-            // else
-            //     currentPlayer = 1;
-
-            // // get move score using UCT formula
-            //float moveScore = currentPlayer * child.value / child.visits + exploration *(float)Math.Sqrt(Math.Log(_node.visits/child.visits));
-            
-            // averageScorePerVisitCurrentNode + constantC * sqrt(lnOftotalVisits / currentnodevisits )
-            // double UCBScore = ((double)(currentPlayer * child.value) / (double)child.visits) + (exploration * Math.Sqrt(Math.Log((double)_node.visits / (double)child.visits)));
-            // child.UCB1Score = (float)UCBScore;
-
-            Node x = GetRoot(_node);
-            int totalVisits = x.visits;
             double averageScorePerVisitCurrentNode = (child.value) / (double)child.visits;
-            double explorationConst = exploration;
-            double lnOftotalVisits = Math.Log(totalVisits);
-            double UCBScore = averageScorePerVisitCurrentNode + (explorationConst * Math.Sqrt(lnOftotalVisits/(double)child.visits));
-
-            // var UCBScore = ((child.victoriesCount+child.drawsCount/2.0f) / (float)child.visits) + 2 * Math.Sqrt(Math.Log((float)child.parent.visits) / (float)child.visits);
+            double UCBScore = averageScorePerVisitCurrentNode + (explorationConst * (Math.Sqrt(lnOftotalVisits/(double)child.visits)));
             child.UCB1Score = (float)UCBScore;
 
             if((float)UCBScore > bestScore)
             {
-            // better move has been found
                 bestScore = (float)UCBScore;
                 bestMoves = new() {child};
             }
             else if(UCBScore == bestScore)
             {
-            // found as good move as already available
                 bestMoves.Add(child);
             }
         }
-        // return one of the best moves randomly
         return bestMoves[rand.Next(0,bestMoves.Count)];
     }
 
-    // select most promising node
     private Node SelectNode(Node _node)
     {
-        // make sure that we're dealing with non-terminal nodes
         while(!_node.IsTerminated)
         {
-            // case where the node is fully expanded
             if(_node.isFullyExpanded)
                 _node = GetBestMove(_node, 2);
-            // case where node is not fully expanded
             else
-                // otherwise expand the node
                return Expand(_node)??_node;
         }
 
         return _node;
     }
-
-   
 
     public Node Expand(Node parent)
     {
@@ -120,32 +102,23 @@ public class MCTS
         usedMovesInChilds.ForEach(x => possibleMovements.Remove(x));
 
         if(possibleMovements.Count == 0){
-            //Console.WriteLine("node fully expanded");
             parent.isFullyExpanded = true;
             return null;
         }
 
-        var rand = new Random();
-        Node newNode = new Node(parent, parent.board, parent.IdMakesMove == BotId ? HumanId : BotId);
+        
+        Node newNode = new Node(parent, parent.board, parent.IdMakesMove == AIBot_Id ? EnemyID : AIBot_Id);
+
         parent.childrens.Add(newNode);
-        //make random move in child nodes 
         int randomUniqueMovealongChildrens = possibleMovements[rand.Next(0, possibleMovements.Count)];
         newNode.board.SetMove(newNode.board, randomUniqueMovealongChildrens, newNode.IdMakesMove);
-        //Console.WriteLine("new node");
-       // newNode.board.DrawBoard();
-
         if(newNode.board.isGameEnded())
         {
-            //Console.WriteLine("node zze skończoną grą!");
-            // sprawdzenie czy wygrał bot czy człowiek
-            //Console.WriteLine("czy wygrana: "+newNode.board.isWin()??"brak zwyciezcy / remis");
             if(newNode.board.isWin() != null)
             {
-                //Console.WriteLine("zwyciezca jest: "+newNode.board.currentPlayer+ $" [{newNode.board.playerMark}]");
-                if(newNode.board.currentPlayer != BotId)
+                if(newNode.board.currentPlayer != AIBot_Id )
                 {
-                    // Gwarantowana przegrana w nastepnym ruchuu gracza, wiec ten parent node ma miec wartosc -oo nie ma sensu do niego wracac xd
-                   // newNode.parent.value = -1_000_000;
+                    //Console.WriteLine("Przegrałbys tak czy siak, przeciwnik moze wygrac w nastepnym ruchu na 100%");
                     newNode.parent.IsTerminated = true;
                 }
             }
@@ -153,23 +126,16 @@ public class MCTS
         return newNode;
     }
 
-    //backpropagatte the number of visits and score up to the root node
     private void Backpropagate(Node node, float score)
     {
-        // update node;s up to root node
         while(node.parent != null)
         {
-            // update node's visits
             node.visits +=1;
-
-            // update node score
             node.value += (int)score;
-            
             node.victoriesCount +=(int)score==1?1:0;
             node.drawsCount += (int)score==0?1:0;
             node.losesCount +=(int)score==-1?1:0;
 
-            // set node to parent
             node = node.parent;
         }
         node.visits +=1;
@@ -182,7 +148,6 @@ public class MCTS
         BoardInfo boardCopy = new BoardInfo(_board, _board.currentPlayer);
         int firstPlayer = _board.currentPlayer==1?2:1;
         int secondPlayer = firstPlayer==1?2:1;
-        var rand = new Random();
 
         //Console.WriteLine("current case node:");
         //boardCopy.DrawBoard();
@@ -210,7 +175,9 @@ public class MCTS
                 break;
         }
 
-        boardCopy.currentPlayer = BotId;
+        MCTS.simulationsCount++;
+
+        boardCopy.currentPlayer = AIBot_Id;
         //boardCopy.DrawBoard();
        if(boardCopy.isWin() != null)
        {
